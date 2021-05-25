@@ -129,7 +129,7 @@ func HandleValidation(
 	// Scenario 3:
 	//   all policies were applied successfully.
 	//   create an event on the resource
-	events := generateEvents(engineResponses, blocked, (request.Operation == v1beta1.Update), logger)
+	events := generateEvents(engineResponses, blocked, (request.Operation == v1beta1.Update), dynamicConfig.GetGenerateSuccessEvents(), logger)
 	eventGen.Add(events...)
 	if blocked {
 		logger.V(4).Info("resource blocked")

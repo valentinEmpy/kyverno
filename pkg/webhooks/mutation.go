@@ -102,7 +102,7 @@ func (ws *WebhookServer) HandleMutation(
 	//   all policies were applied successfully.
 	//   create an event on the resource
 	// ADD EVENTS
-	events := generateEvents(engineResponses, false, (request.Operation == v1beta1.Update), logger)
+	events := generateEvents(engineResponses, false, (request.Operation == v1beta1.Update), ws.configHandler.GetGenerateSuccessEvents(), logger)
 	ws.eventGen.Add(events...)
 
 	// debug info

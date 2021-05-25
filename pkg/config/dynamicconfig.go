@@ -4,6 +4,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -30,6 +31,7 @@ type ConfigData struct {
 	excludeGroupRole            []string
 	excludeUsername             []string
 	restrictDevelopmentUsername []string
+	generateSuccessEvents       bool
 	cmSycned                    cache.InformerSynced
 	reconcilePolicyReport       chan<- bool
 	log                         logr.Logger
@@ -75,6 +77,12 @@ func (cd *ConfigData) GetExcludeUsername() []string {
 	return cd.excludeUsername
 }
 
+func (cd *ConfigData) GetGenerateSuccessEvents() bool {
+	cd.mux.RLock()
+	defer cd.mux.RUnlock()
+	return cd.generateSuccessEvents
+}
+
 // FilterNamespaces filters exclude namespace
 func (cd *ConfigData) FilterNamespaces(namespaces []string) []string {
 	var results []string
@@ -92,12 +100,13 @@ type Interface interface {
 	ToFilter(kind, namespace, name string) bool
 	GetExcludeGroupRole() []string
 	GetExcludeUsername() []string
+	GetGenerateSuccessEvents() bool
 	RestrictDevelopmentUsername() []string
 	FilterNamespaces(namespaces []string) []string
 }
 
 // NewConfigData ...
-func NewConfigData(rclient kubernetes.Interface, cmInformer informers.ConfigMapInformer, filterK8sResources, excludeGroupRole, excludeUsername string, reconcilePolicyReport chan<- bool, log logr.Logger) *ConfigData {
+func NewConfigData(rclient kubernetes.Interface, cmInformer informers.ConfigMapInformer, filterK8sResources, excludeGroupRole, excludeUsername string, reconcilePolicyReport chan<- bool, generateSuccessEvents bool, log logr.Logger) *ConfigData {
 	// environment var is read at start only
 	if cmNameEnv == "" {
 		log.Info("ConfigMap name not defined in env:INIT_CONFIG: loading no default configuration")
@@ -108,6 +117,7 @@ func NewConfigData(rclient kubernetes.Interface, cmInformer informers.ConfigMapI
 		cmName:                os.Getenv(cmNameEnv),
 		cmSycned:              cmInformer.Informer().HasSynced,
 		reconcilePolicyReport: reconcilePolicyReport,
+		generateSuccessEvents: generateSuccessEvents,
 		log:                   log,
 	}
 
@@ -247,6 +257,22 @@ func (cd *ConfigData) load(cm v1.ConfigMap) (changed bool) {
 		}
 	}
 
+	generateSuccessEvents, ok := cm.Data["generateSuccessEvents"]
+	if !ok {
+		logger.V(4).Info("configuration: No generateSuccessEvents defined in ConfigMap")
+	} else {
+		generateSuccessEvents, err := strconv.ParseBool(generateSuccessEvents)
+		if err != nil {
+			logger.V(4).Info("configuration: generateSuccessEvents must be either true/false")
+		} else if generateSuccessEvents == cd.generateSuccessEvents {
+			logger.V(4).Info("generateSuccessEvents did not change")
+		} else {
+			logger.V(2).Info("Updated generateSuccessEvents", "oldGenerateSuccessEvents", cd.generateSuccessEvents, "newGenerateSuccessEvents", generateSuccessEvents)
+			cd.generateSuccessEvents = generateSuccessEvents
+			changed = true
+		}
+	}
+
 	return changed
 }
 
@@ -290,6 +316,7 @@ func (cd *ConfigData) unload(cm v1.ConfigMap) {
 	cd.excludeGroupRole = []string{}
 	cd.excludeGroupRole = append(cd.excludeGroupRole, defaultExcludeGroupRole...)
 	cd.excludeUsername = []string{}
+	cd.generateSuccessEvents = false
 }
 
 type k8Resource struct {

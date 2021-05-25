@@ -51,8 +51,8 @@ var (
 	webhookTimeout int
 	genWorkers     int
 
-	profile      bool
-	policyReport bool
+	profile               bool
+	generateSuccessEvents bool
 
 	policyControllerResyncPeriod time.Duration
 	setupLog                     = log.Log.WithName("setup")
@@ -69,6 +69,7 @@ func main() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&serverIP, "serverIP", "", "IP address where Kyverno controller runs. Only required if out-of-cluster.")
 	flag.BoolVar(&profile, "profile", false, "Set this flag to 'true', to enable profiling.")
+	flag.BoolVar(&generateSuccessEvents, "generateSuccessEvents", false, "Set this flag to 'true', to generate success events.")
 	flag.StringVar(&profilePort, "profile-port", "6060", "Enable profiling at given port, default to 6060.")
 	flag.DurationVar(&policyControllerResyncPeriod, "background-scan", time.Hour, "Perform background scan every given interval, e.g., 30s, 15m, 1h.")
 	if err := flag.Set("v", "2"); err != nil {
@@ -204,6 +205,7 @@ func main() {
 		excludeGroupRole,
 		excludeUsername,
 		prgen.ReconcileCh,
+		generateSuccessEvents,
 		log.Log.WithName("ConfigData"),
 	)
 

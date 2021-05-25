@@ -55,9 +55,12 @@ func (c *Controller) processGR(gr *kyverno.GenerateRequest) error {
 			return nil
 		}
 
-		// 3 - Report failure Events
-		events := failedEvents(err, *gr, *resource)
-		c.eventGen.Add(events...)
+		// 3 - Report Failed Events
+		c.eventGen.Add(failedEvents(err, *gr, *resource)...)
+	}
+
+	if err == nil && c.Config.GetGenerateSuccessEvents() {
+		c.eventGen.Add(successEvents(*gr, *resource)...)
 	}
 
 	// 4 - Update Status

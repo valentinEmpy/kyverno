@@ -10,7 +10,9 @@ type MsgKey int
 
 //Message id for pre-defined messages
 const (
-	FPolicyApplyBlockCreate MsgKey = iota
+	SPolicyApply = iota
+	SResourcePolicyApply
+	FPolicyApplyBlockCreate
 	FPolicyApplyBlockUpdate
 	FPolicyBlockResourceUpdate
 	FPolicyApplyFailed
@@ -19,6 +21,8 @@ const (
 
 func (k MsgKey) String() string {
 	return [...]string{
+		"Policy applied successfully on the resource '%s'",
+		"Policy '%s' applied successfully on the resource",
 		"Resource %s creation blocked by rule(s) %s",
 		"Rule(s) '%s' of policy '%s' blocked update of the resource",
 		"Resource %s update blocked by rule(s) %s",

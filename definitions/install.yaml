@@ -2385,6 +2385,7 @@ subjects:
 ---
 apiVersion: v1
 data:
+  generateSuccessEvents: 'true'
   excludeGroupRole: system:serviceaccounts:kube-system,system:nodes,system:kube-scheduler
   resourceFilters: '[Event,*,*][*,kube-system,*][*,kube-public,*][*,kube-node-lease,*][Node,*,*][APIService,*,*][TokenReview,*,*][SubjectAccessReview,*,*][SelfSubjectAccessReview,*,*][*,kyverno,*][Binding,*,*][ReplicaSet,*,*][ReportChangeRequest,*,*][ClusterReportChangeRequest,*,*][PolicyReport,*,*][ClusterPolicyReport,*,*]'
 kind: ConfigMap
@@ -2441,8 +2442,8 @@ spec:
               fieldPath: metadata.namespace
         - name: KYVERNO_SVC
           value: kyverno-svc
-        image: ghcr.io/kyverno/kyverno:v1.3.6
-        imagePullPolicy: IfNotPresent
+        image: valentinempy/kyverno:v1.3.6-2-gde72a524
+        imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 2
           httpGet:

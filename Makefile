@@ -61,7 +61,7 @@ docker-push-initContainer:
 ##################################
 .PHONY: docker-build-kyverno docker-push-kyverno
 KYVERNO_PATH := cmd/kyverno
-KYVERNO_IMAGE := kyverno
+KYVERNO_IMAGE := valentinempy/kyverno
 
 local:
 	go build -ldflags=$(LD_FLAGS) $(PWD)/$(KYVERNO_PATH)
@@ -77,8 +77,8 @@ docker-build-kyverno:
 
 docker-build-local-kyverno:
 	CGO_ENABLED=0 GOOS=linux go build -o $(PWD)/$(KYVERNO_PATH)/kyverno -ldflags=$(LD_FLAGS) $(PWD)/$(KYVERNO_PATH)/main.go
-	@docker build -f $(PWD)/$(KYVERNO_PATH)/localDockerfile -t $(REPO)/$(KYVERNO_IMAGE):$(IMAGE_TAG) $(PWD)/$(KYVERNO_PATH)
-	@docker tag $(REPO)/$(KYVERNO_IMAGE):$(IMAGE_TAG) $(REPO)/$(KYVERNO_IMAGE):latest
+	@docker build -f $(PWD)/$(KYVERNO_PATH)/localDockerfile -t $(KYVERNO_IMAGE):$(IMAGE_TAG) $(PWD)/$(KYVERNO_PATH)
+	@docker tag $(KYVERNO_IMAGE):$(IMAGE_TAG) $(KYVERNO_IMAGE):latest
 
 docker-build-kyverno-amd64:
 	@docker build -f $(PWD)/$(KYVERNO_PATH)/Dockerfile -t $(REPO)/$(KYVERNO_IMAGE):$(IMAGE_TAG) . --build-arg LD_FLAGS=$(LD_FLAGS) --build-arg TARGETPLATFORM="linux/amd64"
