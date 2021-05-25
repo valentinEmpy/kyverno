@@ -163,7 +163,20 @@ func generateEventsPerEr(log logr.Logger, er *response.EngineResponse) []event.I
 		e.Message = fmt.Sprintf("policy '%s' (%s) rule '%s' failed. %v", er.PolicyResponse.Policy, rule.Type, rule.Name, rule.Message)
 		eventInfos = append(eventInfos, e)
 	}
+	if er.IsSuccessful() {
+		return eventInfos
+	}
 
+	// generate event on policy for failed rules
+	logger.V(4).Info("generating event on policy")
+	e := event.Info{}
+	e.Kind = "ClusterPolicy"
+	e.Namespace = ""
+	e.Name = er.PolicyResponse.Policy
+	e.Reason = event.PolicyViolation.String()
+	e.Source = event.PolicyController
+	e.Message = fmt.Sprintf("policy '%s' rules '%v' not satisfied on resource '%s/%s/%s'", er.PolicyResponse.Policy, er.GetFailedRules(), er.PolicyResponse.Resource.Kind, er.PolicyResponse.Resource.Namespace, er.PolicyResponse.Resource.Name)
+	eventInfos = append(eventInfos, e)
 	return eventInfos
 }
 
